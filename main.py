@@ -16,8 +16,8 @@ class triangle:
 
 	# calculate centroid (i.e. center) of triangle
 	def calculate_centroid(vertex_a, vertex_b, vertex_c):
-		return [(vertex_a[0] + vertex_b[0] + vertex_c[0]) / 3.0,
-			(vertex_a[1] + vertex_b[1] + vertex_c[1]) / 3.0,
+		return [(vertex_a[0] + vertex_b[0] + vertex_c[0]) / 3.0,\
+			(vertex_a[1] + vertex_b[1] + vertex_c[1]) / 3.0,\
 			(vertex_a[2] + vertex_b[2] + vertex_c[2]) / 3.0]
 
 def pair_triangles(tlist1, tlist2):
@@ -84,6 +84,9 @@ def pair_triangles(tlist1, tlist2):
 			print (str(tlist2[i].id) + " (" + str(tlist2[i][0].model_num) + ") is not paired.")
 
 	return result
+
+def cal_outermost_polygon(tri1, tri2):
+	
 
 # Find the triangle from tlist to pair with the triangle target
 def find_pair(target, tlist):
