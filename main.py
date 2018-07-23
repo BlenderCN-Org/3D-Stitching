@@ -1,7 +1,10 @@
 import numpy as np
 
 class triangle:
-	def __init__(self, id, v_a, v_b, v_c, model_num, texels):			# need texels
+	# outermost_index is the two of numbers (0,1,2) to point out which two vertices make up the outermost side
+	# for example, (0,2) means the side made up by v_a and v_c
+	# outermost side is the side of the three sides that is (1) most closed to the edge to be stitched and (2) most distant from center of model
+	def __init__(self, id, v_a, v_b, v_c, outermost_index, model_num, texels):			# need texels
 		# id is generated outside the initialization
 		self.id = id
 		self.model_num = model_num
@@ -11,14 +14,44 @@ class triangle:
 		self.vertex_c = v_c
 		self.texels = texels							# need texels
 		self.centroid = calculate_centroid(self.vertex_a, self.vertex_b, self.vertex_c)
+		self.outermost = (none, none)
+		if (outermost_index[0] == outermost_index[1]):
+			print ("Error: triangle ID " + str(self.id) + " from model " + str(self.model_num) + " has duplicated outermost_index.")
+		else:
+			if (outermost_index[0] == 0):
+				self.outermost[0] = self.vertex_a
+			elif (outermost_index[0] == 1):
+				self.outermost[0] = self.vertex_b
+			elif (outermost_index[0] == 2):
+				self.outermost[0] = self.vertex_c
+			else:
+				print ("Error: triangle ID " + str(self.id) + " from model " + str(self.model_num) + " has invalid outermost_index[0].")
+			if (outermost_index[1] == 0):
+				self.outermost[1] = self.vertex_a
+			elif (outermost_index[1] == 1):
+				self.outermost[1] = self.vertex_b
+			elif (outermost_index[1] == 2):
+				self.outermost[1] = self.vertex_c
+			else:
+				print ("Error: triangle ID " + str(self.id) + " from model " + str(self.model_num) + " has invalid outermost_index[1].")
+
 		# a Bool value used in pairing triangles from two models
 		self.paired = False
+
+		# valid is a Bool value to show whether the object is valid upon initialization
+		self.valid = False
+		# how to check validity of texel?
+		if (isinstance(self.id, int) && len(self.vertex_a)==len(self.vertex_b)==len(self.vertex_c)==3):
+			self.valid = True
 
 	# calculate centroid (i.e. center) of triangle
 	def calculate_centroid(vertex_a, vertex_b, vertex_c):
 		return [(vertex_a[0] + vertex_b[0] + vertex_c[0]) / 3.0,\
 			(vertex_a[1] + vertex_b[1] + vertex_c[1]) / 3.0,\
 			(vertex_a[2] + vertex_b[2] + vertex_c[2]) / 3.0]
+
+class quadrilateral:
+	def __init__(self, id, v_a, v_b, v_c, v_d, texel, )
 
 def pair_triangles(tlist1, tlist2):
 	# output list
