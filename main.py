@@ -1,10 +1,27 @@
 import numpy as np
 
+class line:
+	def __init__(self, pt1, pt2):
+		self.x_0 = pt1[0]
+		self.y_0 = pt1[1]
+		self.z_0 = pt1[2]
+		self.slope_x = pt2[0]-pt1[0]
+		self.slope_y = pt2[1]-pt1[1]
+		self.slope_z = pt2[2]-pt1[2]
+
+class plane:
+	# ax+by+cz+d=0
+	def __int__(self, pt, line):
+		self.a = line.slope_x
+		self.b = line.slope_y
+		self.c = line.slope_z
+		self.d = -(line.slope_x*pt[0]+line.slope_y*pt[1]+line.slope_z*pt[2])
+
 class triangle:
 	# outermost_index is the two of numbers (0,1,2) to point out which two vertices make up the outermost side
 	# for example, (0,2) means the side made up by v_a and v_c
 	# outermost side is the side of the three sides that is (1) most closed to the edge to be stitched and (2) most distant from center of model
-	def __init__(self, id, v_a, v_b, v_c, outermost_index, model_num, texels):			# need texels
+	def __init__(self, id, v_a, v_b, v_c, outermost_index, model_num, texel):			# need texel
 		# id is generated outside the initialization
 		self.id = id
 		self.model_num = model_num
@@ -12,7 +29,7 @@ class triangle:
 		self.vertex_a = v_a
 		self.vertex_b = v_b
 		self.vertex_c = v_c
-		self.texels = texels							# need texels
+		self.texel = texel							# need texel
 		self.centroid = calculate_centroid(self.vertex_a, self.vertex_b, self.vertex_c)
 		self.outermost = (none, none)
 		if (outermost_index[0] == outermost_index[1]):
@@ -51,7 +68,19 @@ class triangle:
 			(vertex_a[2] + vertex_b[2] + vertex_c[2]) / 3.0]
 
 class quadrilateral:
-	def __init__(self, id, v_a, v_b, v_c, v_d, texel, )
+	def __init__(self, id, v_a, v_b, v_c, v_d, texel):								# need texel
+		self.id = id
+		self.vertex_a = v_a
+		self.vertex_b = v_b
+		self.vertex_c = v_c
+		self.vertex_d = v_d
+		self.texel = texel															# need texel
+
+		# valid is a Bool value to show whether the object is valid upon initialization
+		self.valid = False
+		# how to check validity of texel?
+		if (isinstance(self.id, int) && len(self.vertex_a)==len(self.vertex_b)==len(self.vertex_c)==3):
+			self.valid = True
 
 def pair_triangles(tlist1, tlist2):
 	# output list
@@ -118,7 +147,29 @@ def pair_triangles(tlist1, tlist2):
 
 	return result
 
-def cal_outermost_polygon(tri1, tri2):
+def generate_quadrilateral(tri1, tri2, id1=-1, id2=-1):
+	whole = cal_outermost_quadrilateral(tri1, tri2)
+	return divide_quadrilateral(whole, tri1, tri2, id1, id2)
+
+def cal_outermost_quadrilateral(tri1, tri2):
+	# compute the correct order to align four vertices
+	diff_1 = [0, 0, 0]
+	diff_2 = [0, 0, 0]
+	# x_2-x_1+x_4-x_3, y_2-y_1+y_4-y_3, z_2-z_1+z_4-z_3
+	for i in range (0, 3):
+		diff_1[i] = tri1.outermost[1][i]-tri1.outermost[0][i]+tri2.outermost[1][i]-tri2.outermost[0][i]
+	# x_2-x_1+x_3-x_4, y_2-y_1+y_3-y_4, z_2-z_1+z_3-z_4
+	for i in range (0, 3):
+		diff_2[i] = tri1.outermost[1][i]-tri1.outermost[0][i]+tri2.outermost[0][i]-tri2.outermost[1][i]
+
+	if (diff_1[0]**2+diff_1[1]**2+diff_1[2]**2 >= diff_2[0]**2+diff_2[1]**2+diff_2[2]**2):
+		# id here is not used in following steps, so set to default -1
+		return quadrilateral(-1, tri1.outermost[0], tri1.outermost[1], tri2.outermost[0], tri2.outermost[1], tri1.texel)
+	else:
+		return quadrilateral(-1, tri1.outermost[0], tri1.outermost[1], tri2.outermost[1], tri2.outermost[0], tri2.texel)
+
+def divide_quadrilateral(quad, tri1, tri2, id1=-1, id2=-1):
+	line_of_centroids = line(tri1.centroid, tri2.centroid)
 	
 
 # Find the triangle from tlist to pair with the triangle target
