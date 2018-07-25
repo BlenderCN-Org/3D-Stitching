@@ -8,6 +8,12 @@ class line:
 		self.slope_x = pt2[0]-pt1[0]
 		self.slope_y = pt2[1]-pt1[1]
 		self.slope_z = pt2[2]-pt1[2]
+		self.midpoint = cal_midpoint(pt1, pt2)
+
+	def cal_midpoint(pt1, pt2):
+		return [pt1[0]+(pt2[0]-pt1[0])/2.0,\
+			pt1[1]+(pt2[1]-pt1[1])/2.0,\
+			pt1[2]+(pt2[2]-pt1[2])/2.0]
 
 class plane:
 	# ax+by+cz+d=0
@@ -170,6 +176,7 @@ def cal_outermost_quadrilateral(tri1, tri2):
 
 def divide_quadrilateral(quad, tri1, tri2, id1=-1, id2=-1):
 	line_of_centroids = line(tri1.centroid, tri2.centroid)
+	orthogonal_plane = plane(line_of_centroids.midpoint, line_of_centroids)
 	
 
 # Find the triangle from tlist to pair with the triangle target
