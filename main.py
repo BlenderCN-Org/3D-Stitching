@@ -174,10 +174,19 @@ def cal_outermost_quadrilateral(tri1, tri2):
 	else:
 		return quadrilateral(-1, tri1.outermost[0], tri1.outermost[1], tri2.outermost[1], tri2.outermost[0], tri2.texel)
 
-def divide_quadrilateral(quad, tri1, tri2, id1=-1, id2=-1):
+def divide_quadrilateral(quad, tri1, tri2, id1=-1, id2=-1, texel1, texel2):						# need texel
 	line_of_centroids = line(tri1.centroid, tri2.centroid)
 	orthogonal_plane = plane(line_of_centroids.midpoint, line_of_centroids)
-	
+	cross_line = find_line_cross_quad_and_plane(quad, orthogonal_plane)
+	# need texel
+	return tuple(quadrilateral(id1, quad.v_a, quad.v_b, pt2, pt1, texel1), quadrilateral(id2, pt1, pt2, quad.v_c, quad.v_d, texel2))
+
+def find_line_cross_quad_and_plane(quad, plane):
+	t1 = (plane.d+plane.a*quad.v_a[0]+plane.b*quad.v_a[1]+plane.c*quad.v_a[2])*1.0/(plane.a*quad.v_a[0]-plane.a*quad.v_d[0]+plane.b*quad.v_a[1]-plane.b*quad.v_d[1]+plane.c*quad.v_a[2]-plane.c*quad.v_d[2])
+	t2 = (plane.d+plane.a*quad.v_b[0]+plane.b*quad.v_b[1]+plane.c*quad.v_b[2])*1.0/(plane.a*quad.v_b[0]-plane.a*quad.v_c[0]+plane.b*quad.v_b[1]-plane.b*quad.v_c[1]+plane.c*quad.v_b[2]-plane.c*quad.v_c[2])
+	pt1 = [t1*quad.v_d[0]+(1.0-t1)*quad.v_a[0], t1*quad.v_d[1]+(1.0-t1)*quad.v_a[1], t1*quad.v_d[2]+(1.0-t1)*quad.v_a[2]]
+	pt2 = [t2*quad.v_c[0]+(1.0-t2)*quad.v_b[0], t2*quad.v_c[1]+(1.0-t2)*quad.v_b[1], t2*quad.v_c[2]+(1.0-t2)*quad.v_b[2]]
+	return tuple(tuple(pt1, pt2), line(pt1, pt2))
 
 # Find the triangle from tlist to pair with the triangle target
 def find_pair(target, tlist):
