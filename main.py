@@ -60,9 +60,6 @@ class triangle:
 			else:
 				print ("Error: triangle ID " + str(self.id) + " from model " + str(self.model_num) + " has invalid outermost_index[1].")
 
-		# a Bool value used in pairing triangles from two models
-		self.paired = False
-
 		# valid is a Bool value to show whether the object is valid upon initialization
 		self.valid = False
 		# how to check validity of texel?
@@ -79,20 +76,6 @@ class triangle:
 		return [(vertex_a[0] + vertex_b[0] + vertex_c[0]) / 3.0,\
 			(vertex_a[1] + vertex_b[1] + vertex_c[1]) / 3.0,\
 			(vertex_a[2] + vertex_b[2] + vertex_c[2]) / 3.0]
-
-	# This sort function is useful but inefficient
-	# May integrate with pair_triangles in the future
-	def add_paired_triangles(tri_pair_list, tri_obj_list):
-		matrix = list()
-		for i in range(0, len(tri_obj_list)):
-			matrix.append(set())
-
-		for i in range(0, len(tri_pair_list)):
-			matrix[tri_pair_list[i][0]].add(tri_pair_list[i][1])
-			matrix[tri_pair_list[i][1]].add(tri_pair_list[i][0])
-
-		for i in range(0, len(tri_obj_list)):
-			tri_obj_list[i].paired_list = tri_obj_list[i].paired_list.union(matrix[tri_obj_list[i].id])
 
 class quadrilateral:
 	def __init__(self, id, v_a, v_b, v_c, v_d, texel):								# need texel
@@ -114,8 +97,6 @@ class quadrilateral:
 		self.texel = texel
 
 def pair_triangles(tlist1, tlist2):
-	# output list
-	result = list()
 	# find the closest two by comparing the weights
 	min_triangle1 = -1
 	min_triangle2 = -1
@@ -133,10 +114,8 @@ def pair_triangles(tlist1, tlist2):
 			min_tlist2 = tlist2[i].centroid
 
 	# start pairing
-	result.append(list(tlist1[min_triangle1], tlist2[min_triangle2]))
-	# mark as paired
-	tlist1[min_triangle1].paired = True
-	tlist2[min_triangle2].paired = True
+	tlist1[min_triangle1].paired_list.add(tlist2[min_triangle2])
+	tlist2[min_triangle2].paired_list.add(tlist1[min_triangle1])
 
 	# loop through Model 1
 	for i in range(0, len(tlist1)):
@@ -144,36 +123,40 @@ def pair_triangles(tlist1, tlist2):
 		if (found_pair[0]):
 			print ("Error: Triangle " + str(i) + " in model 1 is not paired.")
 			continue
-		tlist1[i].paired = True
-		tlist2[found_pair[1]].paired = True
-		result.append(list(tlist1[i], tlist2[found_pair[1]]))
+		tlist1[i].paired_list.add(tlist2[found_pair[1]])
+		tlist2[found_pair[1]].paired_list.add(tlist1[i])
 
 	# loop through Model 2
 	for i in range(0, len(tlist2)):
-		if (tlist2[i].paired == False):
+		if (len(tlist2[i].paired_list) == 0):
 			found_pair = find_pair(tlist2[i], tlist1)
 			if (found_pair[0]):
 				print ("Error: Triangle " + str(i) + " in model 2 is not paired.")
 				continue
-			tlist1[found_pair[1]].paired = True
-			tlist2[i].paired = True
-			result.append(list(tlist2[i], tlist1[found_pair[1]]))
+			tlist2[i].paired_list.add(tlist1[found_pair[1]])
+			tlist1[found_pair[1]].paired_list.add(tlist2[i])
 
-	# Output result list of pairs
+	# Output result list of pairs in a new txt file
 	opt_pair = open("pair_result.txt", "w")
 	opt_pair.write("List of paired triangles\n")
-	opt_pair.write("Total number of triangles paired: " + str(len(result)))
-	for i in range(0, len(result)):
-		opt_pair.write(str(result[i][0].id) + " (" + str(result[i][0].model_num) + ") -- " + str(result[i][1].id)\
-		 + " (" + str(result[i][0].model_num) + ")")
+	for i in range(0, len(tlist1)):
+		tmp_out = str(tlist1[i].id) + " (Model 1) -- "
+		for triangle in tlist1[i].paired_list:
+			tmp_out += str(triangle.id) + " "
+		opt_pair.write(tmp_out)
+	for i in range(0, len(tlist2)):
+		tmp_out = str(tlist2[i].id) + " (Model 2) -- "
+		for triangle in tlist2[i].paired_list:
+			tmp_out += str(triangle.id) + " "
+		opt_pair.write(tmp_out)
 	opt_pair.close()
 
-	# Output any triangles that are not paired
+	# Output any triangles that are not paired in terminal
 	for i in range(0, len(tlist1)):
-		if (tlist1[i].paired == False):
+		if (len(tlist1[i].paired_list) == 0):
 			print (str(tlist1[i].id) + " (" + str(tlist1[i][0].model_num) + ") is not paired.")
 	for i in range(0, len(tlist2)):
-		if (tlist2[i].paired == False):
+		if (len(tlist2[i].paired_list) == 0):
 			print (str(tlist2[i].id) + " (" + str(tlist2[i][0].model_num) + ") is not paired.")
 
 	return result
