@@ -38,6 +38,8 @@ class triangle:
 		self.texel = texel							# need texel
 		self.centroid = calculate_centroid(self.vertex_a, self.vertex_b, self.vertex_c)
 		self.outermost = (none, none)
+		# the paired list will be filled when calling function add_paired_triangles
+		self.paired_list = list()
 		if (outermost_index[0] == outermost_index[1]):
 			print ("Error: triangle ID " + str(self.id) + " from model " + str(self.model_num) + " has duplicated outermost_index.")
 		else:
@@ -67,11 +69,30 @@ class triangle:
 		if (isinstance(self.id, int) && len(self.vertex_a)==len(self.vertex_b)==len(self.vertex_c)==3):
 			self.valid = True
 
+	def discard_unpaired_triangles(tri_obj_list):
+		for i in range(0, len(tri_obj_list)):
+			if (len(tri_obj_list[i].paired_list) == 0):
+				tri_obj_list[i].valid = False
+
 	# calculate centroid (i.e. center) of triangle
 	def calculate_centroid(vertex_a, vertex_b, vertex_c):
 		return [(vertex_a[0] + vertex_b[0] + vertex_c[0]) / 3.0,\
 			(vertex_a[1] + vertex_b[1] + vertex_c[1]) / 3.0,\
 			(vertex_a[2] + vertex_b[2] + vertex_c[2]) / 3.0]
+
+	# This sort function is useful but inefficient
+	# May integrate with pair_triangles in the future
+	def add_paired_triangles(tri_pair_list, tri_obj_list):
+		matrix = list()
+		for i in range(0, len(tri_obj_list)):
+			matrix.append(set())
+
+		for i in range(0, len(tri_pair_list)):
+			matrix[tri_pair_list[i][0]].add(tri_pair_list[i][1])
+			matrix[tri_pair_list[i][1]].add(tri_pair_list[i][0])
+
+		for i in range(0, len(tri_obj_list)):
+			tri_obj_list[i].paired_list = tri_obj_list[i].paired_list.union(matrix[tri_obj_list[i].id])
 
 class quadrilateral:
 	def __init__(self, id, v_a, v_b, v_c, v_d, texel):								# need texel
@@ -87,6 +108,10 @@ class quadrilateral:
 		# how to check validity of texel?
 		if (isinstance(self.id, int) && len(self.vertex_a)==len(self.vertex_b)==len(self.vertex_c)==3):
 			self.valid = True
+
+	def assign_texture(self, texel):
+		# extend texel
+		self.texel = texel
 
 def pair_triangles(tlist1, tlist2):
 	# output list
@@ -154,6 +179,11 @@ def pair_triangles(tlist1, tlist2):
 	return result
 
 def generate_quadrilateral(tri1, tri2, id1=-1, id2=-1):
+	# check validity of triangles
+	if (!tri1.valid && !tri2.valid):
+		# be careful with the returned Bool
+		return False
+
 	whole = cal_outermost_quadrilateral(tri1, tri2)
 	return divide_quadrilateral(whole, tri1, tri2, id1, id2)
 
@@ -179,7 +209,13 @@ def divide_quadrilateral(quad, tri1, tri2, id1=-1, id2=-1, texel1, texel2):					
 	orthogonal_plane = plane(line_of_centroids.midpoint, line_of_centroids)
 	cross_line = find_line_cross_quad_and_plane(quad, orthogonal_plane)
 	# need texel
-	return tuple(quadrilateral(id1, quad.v_a, quad.v_b, pt2, pt1, texel1), quadrilateral(id2, pt1, pt2, quad.v_c, quad.v_d, texel2))
+	extended1 = quadrilateral(id1, quad.v_a, quad.v_b, pt2, pt1, None)
+	extended2 = quadrilateral(id2, pt1, pt2, quad.v_c, quad.v_d, None)
+	# extend_texture should be called afterwards, because should pair all triangles at the first pace
+	return tuple(extended1, extended2)
+
+def extend_texture(quad, texel):
+	quad.assign_texture(texel)
 
 def find_line_cross_quad_and_plane(quad, plane):
 	t1 = (plane.d+plane.a*quad.v_a[0]+plane.b*quad.v_a[1]+plane.c*quad.v_a[2])*1.0/(plane.a*quad.v_a[0]-plane.a*quad.v_d[0]+plane.b*quad.v_a[1]-plane.b*quad.v_d[1]+plane.c*quad.v_a[2]-plane.c*quad.v_d[2])
