@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 
 class line:
@@ -66,10 +67,11 @@ class triangle:
 		if (isinstance(self.id, int) && len(self.vertex_a)==len(self.vertex_b)==len(self.vertex_c)==3):
 			self.valid = True
 
-	def discard_unpaired_triangles(tri_obj_list):
-		for i in range(0, len(tri_obj_list)):
-			if (len(tri_obj_list[i].paired_list) == 0):
-				tri_obj_list[i].valid = False
+	# DO NOT USE __del__
+	def discard_unpaired_triangles(tlist):
+		for i in range(0, len(tlist)):
+			if (len(tlist[i].paired_list) == 0):
+				tlist[i].valid = False
 
 	# calculate centroid (i.e. center) of triangle
 	def calculate_centroid(vertex_a, vertex_b, vertex_c):
@@ -159,7 +161,27 @@ def pair_triangles(tlist1, tlist2):
 		if (len(tlist2[i].paired_list) == 0):
 			print (str(tlist2[i].id) + " (" + str(tlist2[i][0].model_num) + ") is not paired.")
 
-	return result
+# Find the triangle from tlist to pair with the triangle target
+def find_pair(target, tlist):
+	min_triangle = -1
+	dist = np.inf
+	# assume the triangles in tlist are in a direction along model sides
+	prev_dist = np.inf
+	for j in range(0, len(tlist)):
+		dist = point_distance(target, tlist[j])
+		if (dist > prev_dist):
+			break
+		prev_dist = dist
+		min_triangle = j
+	# if no triangle is available to be paired, return False
+	if (min_triangle == -1):
+		return (False, -1)
+	return (True, min_triangle)
+
+def point_distance(point1, point2):
+	a = np.array((point1.centroid[0], point1.centroid[1], point1.centroid[2]))
+	b = np.array((point2.centroid[0], point2.centroid[1], point2.centroid[2]))
+	return np.linalg.norm(a-b)
 
 def generate_quadrilateral(tri1, tri2, id1=-1, id2=-1):
 	# check validity of triangles
@@ -207,27 +229,37 @@ def find_line_cross_quad_and_plane(quad, plane):
 	pt2 = [t2*quad.v_c[0]+(1.0-t2)*quad.v_b[0], t2*quad.v_c[1]+(1.0-t2)*quad.v_b[1], t2*quad.v_c[2]+(1.0-t2)*quad.v_b[2]]
 	return tuple(tuple(pt1, pt2), line(pt1, pt2))
 
-# Find the triangle from tlist to pair with the triangle target
-def find_pair(target, tlist):
-	min_triangle = -1
-	dist = np.inf
-	# assume the triangles in tlist are in a direction along model sides
-	prev_dist = np.inf
-	for j in range(0, len(tlist)):
-		dist = point_distance(target, tlist[j])
-		if (dist > prev_dist):
-			break
-		prev_dist = dist
-		min_triangle = j
-	# if no triangle is available to be paired, return False
-	if (min_triangle == -1):
-		return (False, -1)
-	return (True, min_triangle)
+def main():
+	if (len(sys.argv) != 3):
+		print ("Usage: main.py [input_obj] [output_obj]")
+		return 1
+	# Test to open input file
 
-def point_distance(point1, point2):
-	a = np.array((point1.centroid[0], point1.centroid[1], point1.centroid[2]))
-	b = np.array((point2.centroid[0], point2.centroid[1], point2.centroid[2]))
-	return np.linalg.norm(a-b)
+	# Test to create output file
+
+	# Create two triangle lists in global
+	'''
+	*** Blender API opens input obj ***
+	tlist1
+	tlist2
+	'''
+	# Pair triangle lists
+	pair_triangles(tlist1, tlist2)
+	# Generate quadrilaterals
+
+	# Compute textures
+	'''
+	*** Blender API and additional script ***
+	'''
+	# Extend texture
+
+	# Discard unpaired triangles by check attribute valid in triangle object
+
+	# Output obj file
+	'''
+	Blender API
+	'''
+	return 0
 
 if __name__ == '__main__':
 	main()
