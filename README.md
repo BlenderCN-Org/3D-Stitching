@@ -1,1 +1,5 @@
 # 3D-Stitching
+## Introduction
+3D-stitching is a method to solve a particular issue within the pipeline of 3D reconstruction of large-scale scenes. Due to the linear growing rate of processing time of each image with the number of images in dataset, it is recommended to reconstruct from smaller subsets of data which are known to belong to a same object. Therefore, an automatic method to joint and merge two adjacent models is necessary to reduce the pipeline time complexity considerably. The input data in our test cases are 3D OBJ files. The method can be easily extended to other 3D model file types. Textures from original models are also recomputed to map to corresponding merged meshes. In the paper, we assume users can specify the direction in which two models are jointed and can move the surfaces to be merged to appropriate positions closed to ground truth. Output is exported in 3D OBJ type.
+## Contact
+Cornelius: corneliushsiao[AT]gmail.com
