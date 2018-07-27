@@ -16,6 +16,14 @@ class line:
 			pt1[1]+(pt2[1]-pt1[1])/2.0,\
 			pt1[2]+(pt2[2]-pt1[2])/2.0]
 
+	def divide_line(self, division):
+		# [v_a, ..., v_b]
+		result = list([self.x_0, self.y_0, self.z_0])
+		for i in range(1, n):
+			result.append([self.x_0+self.slope_x*1.0*i/n, self.y_0+self.slope_y*1.0*i/n, self.z_0+self.slope_z*1.0*i/n])
+		result.append([self.x_0+self.slope_x, self.y_0+self.slope_y, self.z_0+self.slope_z])
+		return result
+
 class plane:
 	# ax+by+cz+d=0
 	def __int__(self, pt, line):
@@ -25,6 +33,14 @@ class plane:
 		self.d = -(line.slope_x*pt[0]+line.slope_y*pt[1]+line.slope_z*pt[2])
 
 class triangle:
+	# This constructor is only used in function texture_quad_to_triangle(quad)
+	def __init__(self, v_a, v_b, v_c, texel):
+		self.id = -1
+		self.vertex_a = v_a
+		self.vertex_b = v_b
+		self.vertex_c = v_c
+		self.texel = texel
+
 	# outermost_index is the two of numbers (0,1,2) to point out which two vertices make up the outermost side
 	# for example, (0,2) means the side made up by v_a and v_c
 	# outermost side is the side of the three sides that is (1) most closed to the edge to be stitched and (2) most distant from center of model
@@ -228,6 +244,16 @@ def find_line_cross_quad_and_plane(quad, plane):
 	pt1 = [t1*quad.v_d[0]+(1.0-t1)*quad.v_a[0], t1*quad.v_d[1]+(1.0-t1)*quad.v_a[1], t1*quad.v_d[2]+(1.0-t1)*quad.v_a[2]]
 	pt2 = [t2*quad.v_c[0]+(1.0-t2)*quad.v_b[0], t2*quad.v_c[1]+(1.0-t2)*quad.v_b[1], t2*quad.v_c[2]+(1.0-t2)*quad.v_b[2]]
 	return tuple(tuple(pt1, pt2), line(pt1, pt2))
+
+def texture_quad_to_triangle(quad):
+	# Calculate the texture to be applied to triangle
+	'''
+	*** Blender API and other script ***
+	'''
+	# Be careful with the id and direction to apply texture
+	tri1 = triangle(quad.vertex_a, quad.vertex_b, quad.vertex_c)
+	tri2 = triangle(quad.vertex_a, quad.vertex_c, quad.vertex_d)
+	return tuple(tri1, tri2)
 
 def main():
 	if (len(sys.argv) != 3):
