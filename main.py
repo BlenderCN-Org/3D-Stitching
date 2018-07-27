@@ -35,6 +35,7 @@ class plane:
 class triangle:
 	# This constructor is only used in function texture_quad_to_triangle(quad)
 	def __init__(self, v_a, v_b, v_c, texel):
+		# default id when id is not used (e.g. for temporary object)
 		self.id = -1
 		self.vertex_a = v_a
 		self.vertex_b = v_b
@@ -139,7 +140,7 @@ def pair_triangles(tlist1, tlist2):
 	for i in range(0, len(tlist1)):
 		found_pair = find_pair(tlist1[i], tlist2)
 		if (found_pair[0]):
-			print ("Error: Triangle " + str(i) + " in model 1 is not paired.")
+			print ("Error: Triangle " + str(i) + " in model 1 is not paired. Thus not in the tlist.")
 			continue
 		tlist1[i].paired_list.add(tlist2[found_pair[1]])
 		tlist2[found_pair[1]].paired_list.add(tlist1[i])
@@ -149,7 +150,7 @@ def pair_triangles(tlist1, tlist2):
 		if (len(tlist2[i].paired_list) == 0):
 			found_pair = find_pair(tlist2[i], tlist1)
 			if (found_pair[0]):
-				print ("Error: Triangle " + str(i) + " in model 2 is not paired.")
+				print ("Error: Triangle " + str(i) + " in model 2 is not paired. Thus not in the tlist.")
 				continue
 			tlist2[i].paired_list.add(tlist1[found_pair[1]])
 			tlist1[found_pair[1]].paired_list.add(tlist2[i])
@@ -199,13 +200,24 @@ def point_distance(point1, point2):
 	b = np.array((point2.centroid[0], point2.centroid[1], point2.centroid[2]))
 	return np.linalg.norm(a-b)
 
+def divide_quad_and_generate(tlist1, tlist2):
+	
+
 def generate_quadrilateral(tri1, tri2, id1=-1, id2=-1):
 	# check validity of triangles
 	if (!tri1.valid && !tri2.valid):
 		# be careful with the returned Bool
 		return False
 
-	whole = cal_outermost_quadrilateral(tri1, tri2)
+	# Check if there are multiple triangles paired with one triangle
+	if (len(tri1.paired_list) == 1 && len(tri2.paired_list) == 1):
+		whole = cal_outermost_quadrilateral(tri1, tri2)
+	elif (len(tri1.paired_list) != 1 && len(tri2.paired_list) == 1):
+		# first divide tri2 into several and then pair each to 
+	elif (len(tri1.paired_list) == 1 && len(tri2.paired_list) != 1):
+
+	else:
+
 	return divide_quadrilateral(whole, tri1, tri2, id1, id2)
 
 def cal_outermost_quadrilateral(tri1, tri2):
