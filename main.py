@@ -200,42 +200,47 @@ def point_distance(point1, point2):
 	b = np.array((point2.centroid[0], point2.centroid[1], point2.centroid[2]))
 	return np.linalg.norm(a-b)
 
-def divide_quad_and_generate(tlist1, tlist2):
-	
+def generate_quadrilateral(tlist):
+	result = list()
+	for i in range(0, len(tlist)):
+		outermost_line_1 = line(tlist[i].outermost[0], tlist[i].outermost[1])
+		division_1 = outermost_line_1.divide_line(len(tlist[i].paired_list))
+		for j in range(0, len(tlist[i].paired_list)):
+			outermost_line_2 = line(tlist[i].paired_list[j].outermost[0], tlist[i].paired_list[j].outermost[1])
+			division_2 = outermost_line_2.divide_line(len(tlist[i].paired_list[j].paired_list))
+			index_tri1_to_tri2 = j
+			index_tri2_to_tri1 = -1
+			for k in range(0, len(tlist[i].paired_list)):
+				if (tlist[i].paired_list[k].id == tlist[i].id):
+					index_tri2_to_tri1 = k
+			if (index_tri2_to_tri1 == -1):
+				print ("Error: pair of triangle " + str(tlist.id) + " from tlist cannot be found in function generate_quadrilateral.")
+				continue
+			# vertices (index_tri1_to_tri2,index_tri1_to_tri2+1) from tri1 and (index_tri2_to_tri1,index_tri2_to_tri1+1) from tri2 should be paired
+			quad = cal_outermost_quadrilateral(division_1[index_tri1_to_tri2], division_1[index_tri1_to_tri2+1], division_2[index_tri2_to_tri1], division_2[index_tri2_to_tri1+1], -1, -1)
+			'''
+			*** Calculate ids and texels ***
+			'''
+			extended = divide_quadrilateral(quad, tlist[i], tlist[i].paired_list[j], id1, id2, texel1, texel2)
+			result.append(extended[0], extended[1])
+	return result
 
-def generate_quadrilateral(tri1, tri2, id1=-1, id2=-1):
-	# check validity of triangles
-	if (!tri1.valid && !tri2.valid):
-		# be careful with the returned Bool
-		return False
-
-	# Check if there are multiple triangles paired with one triangle
-	if (len(tri1.paired_list) == 1 && len(tri2.paired_list) == 1):
-		whole = cal_outermost_quadrilateral(tri1, tri2)
-	elif (len(tri1.paired_list) != 1 && len(tri2.paired_list) == 1):
-		# first divide tri2 into several and then pair each to 
-	elif (len(tri1.paired_list) == 1 && len(tri2.paired_list) != 1):
-
-	else:
-
-	return divide_quadrilateral(whole, tri1, tri2, id1, id2)
-
-def cal_outermost_quadrilateral(tri1, tri2):
+def cal_outermost_quadrilateral(tri1_pt1, tri1_pt2, tri2_pt1, tri2_pt2, id1=-1, id2=-1):
 	# compute the correct order to align four vertices
 	diff_1 = [0, 0, 0]
 	diff_2 = [0, 0, 0]
 	# x_2-x_1+x_4-x_3, y_2-y_1+y_4-y_3, z_2-z_1+z_4-z_3
 	for i in range (0, 3):
-		diff_1[i] = tri1.outermost[1][i]-tri1.outermost[0][i]+tri2.outermost[1][i]-tri2.outermost[0][i]
+		diff_1[i] = tri1_pt2[i]-tri1_pt1[i]+tri2_pt2[i]-tri2_pt1[i]
 	# x_2-x_1+x_3-x_4, y_2-y_1+y_3-y_4, z_2-z_1+z_3-z_4
 	for i in range (0, 3):
-		diff_2[i] = tri1.outermost[1][i]-tri1.outermost[0][i]+tri2.outermost[0][i]-tri2.outermost[1][i]
+		diff_2[i] = tri1_pt2[i]-tri1_pt1[i]+tri2_pt1[i]-tri2_pt2[i]
 
 	if (diff_1[0]**2+diff_1[1]**2+diff_1[2]**2 >= diff_2[0]**2+diff_2[1]**2+diff_2[2]**2):
-		# id here is not used in following steps, so set to default -1
-		return quadrilateral(-1, tri1.outermost[0], tri1.outermost[1], tri2.outermost[0], tri2.outermost[1], tri1.texel)
+		# ids here are only for temporary use so set to default as -1
+		return quadrilateral(-1, tri1_pt1, tri1_pt2, tri2_pt1, tri2_pt2, tri1.texel)
 	else:
-		return quadrilateral(-1, tri1.outermost[0], tri1.outermost[1], tri2.outermost[1], tri2.outermost[0], tri2.texel)
+		return quadrilateral(-1, tri1_pt1, tri1_pt2, tri2_pt2, tri2_pt1, tri2.texel)
 
 def divide_quadrilateral(quad, tri1, tri2, id1=-1, id2=-1, texel1, texel2):						# need texel
 	line_of_centroids = line(tri1.centroid, tri2.centroid)
@@ -249,6 +254,9 @@ def divide_quadrilateral(quad, tri1, tri2, id1=-1, id2=-1, texel1, texel2):					
 
 def extend_texture(quad, texel):
 	quad.assign_texture(texel)
+	'''
+	Compute and apply texture
+	'''
 
 def find_line_cross_quad_and_plane(quad, plane):
 	t1 = (plane.d+plane.a*quad.v_a[0]+plane.b*quad.v_a[1]+plane.c*quad.v_a[2])*1.0/(plane.a*quad.v_a[0]-plane.a*quad.v_d[0]+plane.b*quad.v_a[1]-plane.b*quad.v_d[1]+plane.c*quad.v_a[2]-plane.c*quad.v_d[2])
