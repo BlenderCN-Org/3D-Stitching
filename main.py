@@ -221,6 +221,11 @@ def generate_quadrilateral(tlist):
 			'''
 			*** Calculate ids and texels ***
 			'''
+			# Compute textures
+			'''
+			*** Blender API and additional script ***
+			'''
+			# Extend texture
 			extended = divide_quadrilateral(quad, tlist[i], tlist[i].paired_list[j], id1, id2, texel1, texel2)
 			result.append(extended[0], extended[1])
 	return result
@@ -292,13 +297,7 @@ def main():
 	# Pair triangle lists
 	pair_triangles(tlist1, tlist2)
 	# Generate quadrilaterals
-
-	# Compute textures
-	'''
-	*** Blender API and additional script ***
-	'''
-	# Extend texture
-
+	result = generate_quadrilateral(tlist1)
 	# Discard unpaired triangles by check attribute valid in triangle object
 
 	# Output obj file
